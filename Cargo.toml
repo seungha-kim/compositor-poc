@@ -1,6 +1,10 @@
 [workspace]
 
 members = [
+    "logic",
+    "animator",
     "compositor",
-    "example1"
+    "wgpu_renderer",
+    "scheduler",
+    "dev_shell",
 ]
