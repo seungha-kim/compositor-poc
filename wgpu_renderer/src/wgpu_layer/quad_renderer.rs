@@ -12,29 +12,25 @@ use winit::{
 // NOTE: CCW order
 const VERTICES: &[Vertex] = &[
     Vertex {
-        position: [-0.0868241, 0.49240386, 0.0],
-        tex_coords: [0.4131759, 0.00759614],
+        position: [-0.5, 0.5, 0.0],
+        tex_coords: [0.0, 0.0],
     }, // A
     Vertex {
-        position: [-0.49513406, 0.06958647, 0.0],
-        tex_coords: [0.0048659444, 0.43041354],
+        position: [-0.5, -0.5, 0.0],
+        tex_coords: [0.0, 1.0],
     }, // B
     Vertex {
-        position: [-0.21918549, -0.44939706, 0.0],
-        tex_coords: [0.28081453, 0.949397057],
+        position: [0.5, -0.5, 0.0],
+        tex_coords: [1.0, 1.0],
     }, // C
     Vertex {
-        position: [0.35966998, -0.3473291, 0.0],
-        tex_coords: [0.85967, 0.84732911],
+        position: [0.5, 0.5, 0.0],
+        tex_coords: [1.0, 0.0],
     }, // D
-    Vertex {
-        position: [0.44147372, 0.2347359, 0.0],
-        tex_coords: [0.9414737, 0.2652641],
-    }, // E
 ];
 
 // We don't need to implement Pod and Zeroable for our indices, because bytemuck has already implemented them for basic types such as u16
-const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
+const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 pub struct QuadRenderer {
     surface: wgpu::Surface,
@@ -54,7 +50,7 @@ pub struct QuadRenderer {
 pub struct Quad {
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
-    num_indicies: u32, // 6. 그냥 일단 넣어놓음
+    num_indices: u32, // 6. 그냥 일단 넣어놓음
     diffuse_bind_group: wgpu::BindGroup,
     diffuse_texture: Texture,
     uniforms: Uniforms,
@@ -134,12 +130,12 @@ impl Quad {
             usage: wgpu::BufferUsage::INDEX,
         });
 
-        let num_indicies = INDICES.len() as u32;
+        let num_indices = INDICES.len() as u32;
 
         Self {
             vertex_buffer,
             index_buffer,
-            num_indicies,
+            num_indices,
             diffuse_bind_group,
             diffuse_texture,
             uniforms,
@@ -378,7 +374,7 @@ impl QuadRenderer {
                 render_pass.set_vertex_buffer(0, quad.vertex_buffer.slice(..));
                 render_pass.set_index_buffer(quad.index_buffer.slice(..));
                 // render_pass.draw(0..(VERTICES.len() as u32), 0..1); // 3 vertices, 1 instance -> gl_VertexIndex
-                render_pass.draw_indexed(0..quad.num_indicies, 0, 0..1);
+                render_pass.draw_indexed(0..quad.num_indices, 0, 0..1);
             }
         }
         self.queue.submit(std::iter::once(encoder.finish()));
