@@ -46,7 +46,7 @@ pub struct QuadRenderer {
     render_pipeline: wgpu::RenderPipeline,
     camera: Camera,
     camera_controller: CameraController,
-    quad: Box<Quad>,
+    quads: HashMap<usize, Quad>,
     // wgpu::BindGroupLayout
     // ...
 }
@@ -72,6 +72,82 @@ pub struct Quad {
 // device -> command_encoder
 // command_encoder, render_pipeline -> render_pass
 // queue.submit
+
+impl Quad {
+    fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        camera: &Camera,
+        texture_bind_group_layout: &wgpu::BindGroupLayout,
+        uniform_bind_group_layout: &wgpu::BindGroupLayout,
+        offset_x: f32, // TODO: euclide 사용
+        offset_y: f32,
+    ) -> Self {
+        let diffuse_texture = Texture::test(&device, &queue, Some("test texture")).unwrap();
+        let mut uniforms = Uniforms::new();
+        uniforms.update_view_proj(&camera);
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                },
+            ],
+            label: Some("diffuse_bind_group"),
+        });
+
+        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Uniform Buffer"),
+            contents: bytemuck::cast_slice(&[uniforms]),
+            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        });
+        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &uniform_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
+            }],
+            label: Some("uniform_bind_group"),
+        });
+
+        let mut vertices = VERTICES.to_vec();
+        for v in vertices.iter_mut() {
+            v.position[0] += offset_x;
+            v.position[1] += offset_y;
+        }
+
+        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(vertices.as_slice()),
+            usage: wgpu::BufferUsage::VERTEX,
+        });
+
+        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Index Buffer"),
+            contents: bytemuck::cast_slice(INDICES),
+            usage: wgpu::BufferUsage::INDEX,
+        });
+
+        let num_indicies = INDICES.len() as u32;
+
+        Self {
+            vertex_buffer,
+            index_buffer,
+            num_indicies,
+            diffuse_bind_group,
+            diffuse_texture,
+            uniforms,
+            uniform_buffer,
+            uniform_bind_group,
+        }
+    }
+}
 
 impl QuadRenderer {
     // Creating some of the wgpu types requires async code
@@ -106,8 +182,6 @@ impl QuadRenderer {
         };
         let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
-        let diffuse_texture = Texture::test(&device, &queue, Some("test texture")).unwrap();
-
         // BindGroup (GL로 치면 uniform 레이아웃 여기서 서술하는 거임)
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -132,21 +206,6 @@ impl QuadRenderer {
                 label: Some("texture_bind_group_layout"),
             });
 
-        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &texture_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                },
-            ],
-            label: Some("diffuse_bind_group"),
-        });
-
         // Camera & Uniforms
 
         let camera = Camera {
@@ -158,15 +217,6 @@ impl QuadRenderer {
             znear: 0.1,
             zfar: 100.0,
         };
-
-        let mut uniforms = Uniforms::new();
-        uniforms.update_view_proj(&camera);
-
-        let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Uniform Buffer"),
-            contents: bytemuck::cast_slice(&[uniforms]),
-            usage: wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
-        });
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -181,15 +231,6 @@ impl QuadRenderer {
                 }],
                 label: Some("uniform_bind_group_layout"),
             });
-
-        let uniform_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &uniform_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::Buffer(uniform_buffer.slice(..)),
-            }],
-            label: Some("uniform_bind_group"),
-        });
 
         // TODO
         let vs_module = device.create_shader_module(wgpu::include_spirv!("shader.vert.spv"));
@@ -242,32 +283,23 @@ impl QuadRenderer {
             alpha_to_coverage_enabled: false, // AA
         });
 
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsage::VERTEX,
-        });
-
-        let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Index Buffer"),
-            contents: bytemuck::cast_slice(INDICES),
-            usage: wgpu::BufferUsage::INDEX,
-        });
-
-        let num_indicies = INDICES.len() as u32;
-
         let camera_controller = CameraController::new(0.2);
 
-        let quad = Quad {
-            vertex_buffer,
-            index_buffer,
-            num_indicies,
-            diffuse_bind_group,
-            diffuse_texture,
-            uniforms,
-            uniform_buffer,
-            uniform_bind_group,
-        };
+        let mut quads: HashMap<usize, Quad> = HashMap::new();
+        for i in 0..5 {
+            quads.insert(
+                i,
+                Quad::new(
+                    &device,
+                    &queue,
+                    &camera,
+                    &texture_bind_group_layout,
+                    &uniform_bind_group_layout,
+                    0.1 * i as f32,
+                    0.1 * i as f32,
+                ),
+            );
+        }
 
         Self {
             surface,
@@ -279,7 +311,7 @@ impl QuadRenderer {
             render_pipeline,
             camera,
             camera_controller,
-            quad: Box::new(quad),
+            quads,
         }
     }
 
@@ -297,12 +329,14 @@ impl QuadRenderer {
 
     pub fn update(&mut self) {
         self.camera_controller.update_camera(&mut self.camera);
-        self.quad.uniforms.update_view_proj(&self.camera);
-        self.queue.write_buffer(
-            &self.quad.uniform_buffer,
-            0,
-            bytemuck::cast_slice(&[self.quad.uniforms]),
-        );
+        for quad in self.quads.values_mut() {
+            quad.uniforms.update_view_proj(&self.camera);
+            self.queue.write_buffer(
+                &quad.uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[quad.uniforms]),
+            );
+        }
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
@@ -338,12 +372,14 @@ impl QuadRenderer {
             // 어떻게 그릴지 쉽게 갈아치울 수 있구나... (challenge)
             // 다른 쉐이더를 먹인다거나 할 수 있구만..
             render_pass.set_pipeline(&self.render_pipeline);
-            render_pass.set_bind_group(0, &self.quad.diffuse_bind_group, &[]);
-            render_pass.set_bind_group(1, &self.quad.uniform_bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.quad.vertex_buffer.slice(..));
-            render_pass.set_index_buffer(self.quad.index_buffer.slice(..));
-            // render_pass.draw(0..(VERTICES.len() as u32), 0..1); // 3 vertices, 1 instance -> gl_VertexIndex
-            render_pass.draw_indexed(0..self.quad.num_indicies, 0, 0..1);
+            for quad in self.quads.values() {
+                render_pass.set_bind_group(0, &quad.diffuse_bind_group, &[]);
+                render_pass.set_bind_group(1, &quad.uniform_bind_group, &[]);
+                render_pass.set_vertex_buffer(0, quad.vertex_buffer.slice(..));
+                render_pass.set_index_buffer(quad.index_buffer.slice(..));
+                // render_pass.draw(0..(VERTICES.len() as u32), 0..1); // 3 vertices, 1 instance -> gl_VertexIndex
+                render_pass.draw_indexed(0..quad.num_indicies, 0, 0..1);
+            }
         }
         self.queue.submit(std::iter::once(encoder.finish()));
 
