@@ -14,6 +14,10 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let mut quad_renderer = block_on(QuadRenderer::new(&window));
+    let mut quad_handles = Vec::new();
+    for _ in 0..3 {
+        quad_handles.push(quad_renderer.new_quad());
+    }
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {

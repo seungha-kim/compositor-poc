@@ -43,11 +43,14 @@ pub struct QuadRenderer {
     camera: Camera,
     camera_controller: CameraController,
     quads: HashMap<usize, Quad>,
+    quad_id_count: usize,
     // wgpu::BindGroupLayout
     // ...
+    texture_bind_group_layout: wgpu::BindGroupLayout,
+    uniform_bind_group_layout: wgpu::BindGroupLayout,
 }
 
-pub struct Quad {
+struct Quad {
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32, // 6. 그냥 일단 넣어놓음
@@ -56,6 +59,11 @@ pub struct Quad {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct QuadHandle {
+    id: usize,
 }
 
 // # Initialization
@@ -281,21 +289,7 @@ impl QuadRenderer {
 
         let camera_controller = CameraController::new(0.2);
 
-        let mut quads: HashMap<usize, Quad> = HashMap::new();
-        for i in 0..5 {
-            quads.insert(
-                i,
-                Quad::new(
-                    &device,
-                    &queue,
-                    &camera,
-                    &texture_bind_group_layout,
-                    &uniform_bind_group_layout,
-                    0.1 * i as f32,
-                    0.1 * i as f32,
-                ),
-            );
-        }
+        let quads: HashMap<usize, Quad> = HashMap::new();
 
         Self {
             surface,
@@ -308,6 +302,9 @@ impl QuadRenderer {
             camera,
             camera_controller,
             quads,
+            quad_id_count: 0,
+            texture_bind_group_layout,
+            uniform_bind_group_layout,
         }
     }
 
@@ -380,5 +377,24 @@ impl QuadRenderer {
         self.queue.submit(std::iter::once(encoder.finish()));
 
         Ok(())
+    }
+
+    pub fn new_quad(&mut self) -> QuadHandle {
+        self.quad_id_count += 1;
+        self.quads.insert(
+            self.quad_id_count,
+            Quad::new(
+                &self.device,
+                &self.queue,
+                &self.camera,
+                &self.texture_bind_group_layout,
+                &self.uniform_bind_group_layout,
+                0.1 * self.quad_id_count as f32,
+                0.1 * self.quad_id_count as f32,
+            ),
+        );
+        QuadHandle {
+            id: self.quad_id_count,
+        }
     }
 }
