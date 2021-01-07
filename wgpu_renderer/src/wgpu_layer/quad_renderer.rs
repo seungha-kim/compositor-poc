@@ -50,7 +50,7 @@ pub struct QuadRenderer {
     uniform_bind_group_layout: wgpu::BindGroupLayout,
 }
 
-struct Quad {
+pub struct Quad {
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32, // 6. 그냥 일단 넣어놓음
@@ -59,6 +59,12 @@ struct Quad {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+}
+
+impl Quad {
+    fn update_texture(&mut self, queue: &wgpu::Queue, data: &[u8]) {
+        self.diffuse_texture.update(queue, data)
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -87,7 +93,7 @@ impl Quad {
         offset_x: f32, // TODO: euclide 사용
         offset_y: f32,
     ) -> Self {
-        let diffuse_texture = Texture::test(&device, &queue, Some("test texture")).unwrap();
+        let diffuse_texture = Texture::new(&device, &queue, Some("test texture")).unwrap();
         let mut uniforms = Uniforms::new();
         uniforms.update_view_proj(&camera);
 
@@ -396,5 +402,12 @@ impl QuadRenderer {
         QuadHandle {
             id: self.quad_id_count,
         }
+    }
+
+    pub fn update_texture(&mut self, quad_handle: QuadHandle, data: &[u8]) {
+        self.quads
+            .get_mut(&quad_handle.id)
+            .unwrap() // TODO
+            .update_texture(&self.queue, data);
     }
 }
