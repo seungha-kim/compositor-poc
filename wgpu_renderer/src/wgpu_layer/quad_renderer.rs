@@ -9,25 +9,27 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-// NOTE: CCW order
-const VERTICES: &[Vertex] = &[
-    Vertex {
-        position: [-0.5, 0.5, 0.0],
-        tex_coords: [0.0, 0.0],
-    }, // A
-    Vertex {
-        position: [-0.5, -0.5, 0.0],
-        tex_coords: [0.0, 1.0],
-    }, // B
-    Vertex {
-        position: [0.5, -0.5, 0.0],
-        tex_coords: [1.0, 1.0],
-    }, // C
-    Vertex {
-        position: [0.5, 0.5, 0.0],
-        tex_coords: [1.0, 0.0],
-    }, // D
-];
+fn make_vertices(offset_x: f32, offset_y: f32, width: f32, height: f32) -> Vec<Vertex> {
+    // NOTE: CCW
+    vec![
+        Vertex {
+            position: [offset_x, offset_y + height, 0.0],
+            tex_coords: [0.0, 0.0],
+        }, // A
+        Vertex {
+            position: [offset_x, offset_y, 0.0],
+            tex_coords: [0.0, 1.0],
+        }, // B
+        Vertex {
+            position: [offset_x + width, offset_y, 0.0],
+            tex_coords: [1.0, 1.0],
+        }, // C
+        Vertex {
+            position: [offset_x + width, offset_y + height, 0.0],
+            tex_coords: [1.0, 0.0],
+        },
+    ]
+}
 
 // We don't need to implement Pod and Zeroable for our indices, because bytemuck has already implemented them for basic types such as u16
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
@@ -59,6 +61,8 @@ pub struct Quad {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
+    width: f32, // TODO: euclid 사용
+    height: f32,
 }
 
 impl Quad {
@@ -90,6 +94,8 @@ impl Quad {
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
         offset_x: f32, // TODO: euclide 사용
         offset_y: f32,
+        width: f32,
+        height: f32,
     ) -> Self {
         let diffuse_texture = Texture::new(&device, &queue, Some("test texture")).unwrap();
         let mut uniforms = Uniforms::new();
@@ -124,7 +130,8 @@ impl Quad {
             label: Some("uniform_bind_group"),
         });
 
-        let mut vertices = VERTICES.to_vec();
+        let mut vertices = make_vertices(offset_x, offset_y, width, height);
+
         for v in vertices.iter_mut() {
             v.position[0] += offset_x;
             v.position[1] += offset_y;
@@ -153,6 +160,8 @@ impl Quad {
             uniforms,
             uniform_buffer,
             uniform_bind_group,
+            width,
+            height,
         }
     }
 }
@@ -383,7 +392,7 @@ impl QuadRenderer {
         Ok(())
     }
 
-    pub fn new_quad(&mut self) -> QuadId {
+    pub fn new_quad(&mut self, offset_x: f32, offset_y: f32, width: f32, height: f32) -> QuadId {
         self.quad_id_count += 1;
         self.quads.insert(
             self.quad_id_count,
@@ -393,8 +402,10 @@ impl QuadRenderer {
                 &self.camera,
                 &self.texture_bind_group_layout,
                 &self.uniform_bind_group_layout,
-                0.1 * self.quad_id_count as f32,
-                0.1 * self.quad_id_count as f32,
+                offset_x,
+                offset_y,
+                width,
+                height,
             ),
         );
         QuadId(self.quad_id_count)

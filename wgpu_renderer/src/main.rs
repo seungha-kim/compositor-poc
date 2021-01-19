@@ -16,8 +16,9 @@ fn main() {
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let mut quad_renderer = block_on(QuadRenderer::new(&window));
     let mut quad_handles = Vec::new();
-    for _ in 0..3 {
-        let quad_handle = quad_renderer.new_quad();
+    for i in 0..3 {
+        let quad_handle =
+            quad_renderer.new_quad((i as f32) * 30.0, (i as f32) * 30.0, 100.0, 100.0);
         quad_handles.push(quad_handle);
         let image = default_image();
         quad_renderer.update_texture(quad_handle, image.as_slice());
