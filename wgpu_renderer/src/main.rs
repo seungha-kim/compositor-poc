@@ -5,15 +5,25 @@ use raqote::*;
 use wgpu::util::DeviceExt;
 use wgpu_layer::*;
 use winit::{
+    dpi::{LogicalSize, Size},
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
 fn main() {
+    let initial_width = 300.;
+    let initial_height = 300.;
+
     env_logger::init();
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let window = WindowBuilder::new()
+        .with_inner_size(Size::Logical(LogicalSize::new(
+            initial_width,
+            initial_height,
+        )))
+        .build(&event_loop)
+        .unwrap();
     let mut quad_renderer = block_on(QuadRenderer::new(&window));
     let mut quad_handles = Vec::new();
     for i in 0..3 {

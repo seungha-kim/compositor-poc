@@ -35,6 +35,7 @@ fn make_vertices(offset_x: f32, offset_y: f32, width: f32, height: f32) -> Vec<V
 const INDICES: &[u16] = &[0, 1, 3, 3, 1, 2];
 
 pub struct QuadRenderer {
+    scale_factor: f64,
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -169,6 +170,7 @@ impl Quad {
 impl QuadRenderer {
     // Creating some of the wgpu types requires async code
     pub async fn new(window: &Window) -> Self {
+        let scale_factor = window.scale_factor();
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
         let surface = unsafe { instance.create_surface(window) };
@@ -225,14 +227,15 @@ impl QuadRenderer {
 
         // Camera & Uniforms
 
+        // TODO: 말이 되게 고치기
+        let logical_size = size.to_logical::<f32>(scale_factor);
         let camera = Camera {
-            eye: (0.0, 1.0, 2.0).into(),
-            target: (0.0, 0.0, 0.0).into(),
-            up: cgmath::Vector3::unit_y(),
-            aspect: sc_desc.width as f32 / sc_desc.height as f32,
-            fovy: 45.0,
-            znear: 0.1,
-            zfar: 100.0,
+            left: logical_size.width * -0.5,
+            right: logical_size.width * 0.5,
+            bottom: logical_size.height * -0.5,
+            top: logical_size.height * 0.5,
+            near: 0.0,
+            far: 1.0,
         };
 
         let uniform_bind_group_layout =
@@ -318,6 +321,7 @@ impl QuadRenderer {
             quad_id_count: 0,
             texture_bind_group_layout,
             uniform_bind_group_layout,
+            scale_factor,
         }
     }
 
@@ -326,6 +330,12 @@ impl QuadRenderer {
         self.sc_desc.width = new_size.width;
         self.sc_desc.height = new_size.height;
         self.swap_chain = self.device.create_swap_chain(&self.surface, &self.sc_desc);
+        // TODO: 말이 되게 고치기
+        let logical_size = self.size.to_logical::<f32>(self.scale_factor);
+        self.camera.left = logical_size.width * -0.5;
+        self.camera.right = logical_size.width * 0.5;
+        self.camera.bottom = logical_size.height * -0.5;
+        self.camera.top = logical_size.height * 0.5;
     }
 
     pub fn input(&mut self, event: &WindowEvent) -> bool {
