@@ -68,9 +68,7 @@ impl Quad {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct QuadHandle {
-    id: usize,
-}
+pub struct QuadId(usize);
 
 // # Initialization
 // window, instance -> surface -> (adapter) -> device, queue
@@ -385,7 +383,7 @@ impl QuadRenderer {
         Ok(())
     }
 
-    pub fn new_quad(&mut self) -> QuadHandle {
+    pub fn new_quad(&mut self) -> QuadId {
         self.quad_id_count += 1;
         self.quads.insert(
             self.quad_id_count,
@@ -399,14 +397,12 @@ impl QuadRenderer {
                 0.1 * self.quad_id_count as f32,
             ),
         );
-        QuadHandle {
-            id: self.quad_id_count,
-        }
+        QuadId(self.quad_id_count)
     }
 
-    pub fn update_texture(&mut self, quad_handle: QuadHandle, data: &[u8]) {
+    pub fn update_texture(&mut self, quad_id: QuadId, data: &[u8]) {
         self.quads
-            .get_mut(&quad_handle.id)
+            .get_mut(&quad_id.0)
             .unwrap() // TODO
             .update_texture(&self.queue, data);
     }
