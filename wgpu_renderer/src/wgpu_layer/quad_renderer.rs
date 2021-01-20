@@ -1,6 +1,7 @@
 use super::*;
 
 use futures::executor::block_on;
+use primitives::*;
 use std::collections::HashMap;
 use wgpu::util::DeviceExt;
 use winit::{
@@ -9,23 +10,28 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-fn make_vertices(offset_x: f32, offset_y: f32, width: f32, height: f32) -> Vec<Vertex> {
+fn make_vertices(rect: Rect) -> Vec<Vertex> {
     // NOTE: CCW
+
     vec![
         Vertex {
-            position: [offset_x, offset_y + height, 0.0],
+            position: [rect.origin.x, rect.origin.y + rect.size.height, 0.0],
             tex_coords: [0.0, 0.0],
         }, // A
         Vertex {
-            position: [offset_x, offset_y, 0.0],
+            position: [rect.origin.x, rect.origin.y, 0.0],
             tex_coords: [0.0, 1.0],
         }, // B
         Vertex {
-            position: [offset_x + width, offset_y, 0.0],
+            position: [rect.origin.x + rect.size.width, rect.origin.y, 0.0],
             tex_coords: [1.0, 1.0],
         }, // C
         Vertex {
-            position: [offset_x + width, offset_y + height, 0.0],
+            position: [
+                rect.origin.x + rect.size.width,
+                rect.origin.y + rect.size.height,
+                0.0,
+            ],
             tex_coords: [1.0, 0.0],
         },
     ]
@@ -62,8 +68,7 @@ pub struct Quad {
     uniforms: Uniforms,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
-    width: f32, // TODO: euclid 사용
-    height: f32,
+    rect: Rect,
 }
 
 impl Quad {
@@ -93,10 +98,7 @@ impl Quad {
         camera: &Camera,
         texture_bind_group_layout: &wgpu::BindGroupLayout,
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
-        offset_x: f32, // TODO: euclide 사용
-        offset_y: f32,
-        width: f32,
-        height: f32,
+        rect: Rect,
     ) -> Self {
         let diffuse_texture = Texture::new(&device, &queue, Some("test texture")).unwrap();
         let mut uniforms = Uniforms::new();
@@ -131,12 +133,7 @@ impl Quad {
             label: Some("uniform_bind_group"),
         });
 
-        let mut vertices = make_vertices(offset_x, offset_y, width, height);
-
-        for v in vertices.iter_mut() {
-            v.position[0] += offset_x;
-            v.position[1] += offset_y;
-        }
+        let mut vertices = make_vertices(rect);
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Vertex Buffer"),
@@ -161,8 +158,7 @@ impl Quad {
             uniforms,
             uniform_buffer,
             uniform_bind_group,
-            width,
-            height,
+            rect,
         }
     }
 }
@@ -412,10 +408,7 @@ impl QuadRenderer {
                 &self.camera,
                 &self.texture_bind_group_layout,
                 &self.uniform_bind_group_layout,
-                offset_x,
-                offset_y,
-                width,
-                height,
+                Rect::new(Point::new(offset_x, offset_y), Size::new(width, height)),
             ),
         );
         QuadId(self.quad_id_count)

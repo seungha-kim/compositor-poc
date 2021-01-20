@@ -1054,7 +1054,7 @@ dependencies = [
 name = "logic"
 version = "0.1.0"
 dependencies = [
- "euclid 0.22.1",
+ "primitives",
 ]
 
 [[package]]
@@ -1410,6 +1410,13 @@ dependencies = [
  "crc32fast",
  "deflate",
  "inflate",
+]
+
+[[package]]
+name = "primitives"
+version = "0.1.0"
+dependencies = [
+ "euclid 0.22.1",
 ]
 
 [[package]]
@@ -2167,6 +2174,7 @@ dependencies = [
  "env_logger",
  "futures",
  "log",
+ "primitives",
  "raqote",
  "raw-window-handle",
  "wgpu",
