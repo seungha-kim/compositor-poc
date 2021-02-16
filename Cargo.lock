@@ -470,6 +470,12 @@ name = "dev_shell"
 version = "0.1.0"
 dependencies = [
  "compositor",
+ "env_logger",
+ "futures",
+ "log",
+ "raqote",
+ "wgpu",
+ "wgpu_renderer",
  "winit",
 ]
 
@@ -2171,11 +2177,8 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cgmath",
- "env_logger",
  "futures",
- "log",
  "primitives",
- "raqote",
  "raw-window-handle",
  "wgpu",
  "winit",

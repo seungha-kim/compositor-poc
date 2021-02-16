@@ -8,4 +8,10 @@ edition = "2018"
 
 [dependencies]
 compositor = { path = "../compositor" }
-winit = "0.24.0"
+wgpu_renderer = { path = "../wgpu_renderer" }
+winit = "0.24"
+env_logger = "0.7"
+log = "0.4"
+wgpu = "0.6" # TODO: 제거
+futures = "0.3"
+raqote = "0.8.0" # TODO: 제거

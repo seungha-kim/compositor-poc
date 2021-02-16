@@ -11,9 +11,9 @@ pub struct LayerRepository {
 
 impl LayerRepository {
     pub fn root_layer_id(&self) -> &LayerId {
-        self.root_layer_id()
+        &self.root_layer_id
     }
-    
+
     pub fn get_layer_by_id(&self, id: &LayerId) -> &Layer {
         self.layer_map.get(id).unwrap()
     }

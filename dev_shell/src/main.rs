@@ -1,9 +1,7 @@
-mod wgpu_layer;
-
 use futures::executor::block_on;
 use raqote::*;
 use wgpu::util::DeviceExt;
-use wgpu_layer::*;
+use wgpu_renderer::wgpu_layer::*;
 use winit::{
     dpi::{LogicalSize, Size},
     event::*,
