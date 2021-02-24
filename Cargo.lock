@@ -473,8 +473,7 @@ dependencies = [
  "env_logger",
  "futures",
  "log",
- "raqote",
- "wgpu",
+ "painter",
  "wgpu_renderer",
  "winit",
 ]
@@ -1011,6 +1010,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "key_move"
+version = "0.1.0"
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1316,6 +1319,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f923fb806c46266c02ab4a5b239735c144bdeda724a50ed058e5226f594cde3"
 dependencies = [
  "ttf-parser",
+]
+
+[[package]]
+name = "painter"
+version = "0.1.0"
+dependencies = [
+ "raqote",
 ]
 
 [[package]]

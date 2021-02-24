@@ -6,6 +6,8 @@ members = [
     "compositor",
     "wgpu_renderer",
     "scheduler",
-    "dev_shell",
     "primitives",
+    "painter",
+    "applications/dev_shell",
+    "applications/key_move",
 ]

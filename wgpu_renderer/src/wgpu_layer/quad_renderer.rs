@@ -1,9 +1,12 @@
 use super::*;
 
+use bytemuck::__core::fmt::Formatter;
 use futures::executor::block_on;
 use primitives::*;
 use std::collections::HashMap;
+use std::error::Error;
 use wgpu::util::DeviceExt;
+use wgpu::SwapChainError;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
@@ -351,7 +354,7 @@ impl QuadRenderer {
         }
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SwapChainError> {
+    pub fn render(&mut self) -> Result<(), RendererError> {
         // swap_chain -> frame
         // device -> command_encoder
         // command_encoder, render_pipeline -> render_pass
@@ -419,5 +422,39 @@ impl QuadRenderer {
             .get_mut(&quad_id.0)
             .unwrap() // TODO
             .update_texture(&self.queue, data);
+    }
+}
+
+#[derive(Debug)]
+pub enum RendererError {
+    SwapChainLost,
+    SwapChainOutOfMemory,
+    Unexpected,
+}
+
+impl std::fmt::Display for RendererError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            RendererError::SwapChainLost => write!(f, "SwapChain lost"),
+            RendererError::SwapChainOutOfMemory => write!(f, "SwapChain out of memory"),
+            RendererError::Unexpected => write!(f, "Unexpected"),
+        }
+    }
+}
+
+impl std::error::Error for RendererError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        // ???
+        None
+    }
+}
+
+impl From<wgpu::SwapChainError> for RendererError {
+    fn from(e: SwapChainError) -> Self {
+        match e {
+            SwapChainError::Lost => RendererError::SwapChainLost,
+            SwapChainError::OutOfMemory => RendererError::SwapChainOutOfMemory,
+            _ => RendererError::Unexpected,
+        }
     }
 }

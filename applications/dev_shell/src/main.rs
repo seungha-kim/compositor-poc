@@ -1,12 +1,10 @@
 use futures::executor::block_on;
-use raqote::*;
-use wgpu::util::DeviceExt;
 use wgpu_renderer::wgpu_layer::*;
 use winit::{
     dpi::{LogicalSize, Size},
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::{Window, WindowBuilder},
+    window::WindowBuilder,
 };
 
 fn main() {
@@ -28,7 +26,7 @@ fn main() {
         let quad_handle =
             quad_renderer.new_quad((i as f32) * 30.0, (i as f32) * 30.0, 100.0, 100.0);
         quad_handles.push(quad_handle);
-        let image = default_image();
+        let image = painter::default_image();
         quad_renderer.update_texture(quad_handle, image.as_slice());
     }
 
@@ -65,8 +63,8 @@ fn main() {
             quad_renderer.update();
             match quad_renderer.render() {
                 Ok(_) => {}
-                Err(wgpu::SwapChainError::Lost) => quad_renderer.resize(quad_renderer.size),
-                Err(wgpu::SwapChainError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                Err(RendererError::SwapChainLost) => quad_renderer.resize(quad_renderer.size),
+                Err(RendererError::SwapChainOutOfMemory) => *control_flow = ControlFlow::Exit,
                 Err(e) => eprintln!("{:?}", e),
             }
         }
@@ -77,61 +75,4 @@ fn main() {
         }
         _ => {}
     });
-}
-
-fn default_image() -> Vec<u8> {
-    let mut dt = DrawTarget::new(400, 400);
-    let mut pb = PathBuilder::new();
-    pb.move_to(100., 10.);
-    pb.cubic_to(150., 40., 175., 0., 200., 10.);
-    pb.quad_to(120., 100., 80., 200.);
-    pb.quad_to(150., 180., 300., 300.);
-    pb.close();
-    let path = pb.finish();
-    let gradient = Source::new_radial_gradient(
-        Gradient {
-            stops: vec![
-                GradientStop {
-                    position: 0.2,
-                    color: Color::new(0xff, 0, 0xff, 0),
-                },
-                GradientStop {
-                    position: 0.8,
-                    color: Color::new(0xff, 0xff, 0xff, 0xff),
-                },
-                GradientStop {
-                    position: 1.,
-                    color: Color::new(0xff, 0xff, 0, 0xff),
-                },
-            ],
-        },
-        Point::new(150., 150.),
-        128.,
-        Spread::Pad,
-    );
-    dt.fill(&path, &gradient, &DrawOptions::new());
-    let mut pb = PathBuilder::new();
-    pb.move_to(100., 100.);
-    pb.line_to(300., 300.);
-    pb.line_to(200., 300.);
-    let path = pb.finish();
-    dt.stroke(
-        &path,
-        &Source::Solid(SolidSource {
-            r: 0x0,
-            g: 0x0,
-            b: 0x80,
-            a: 0x80,
-        }),
-        &StrokeStyle {
-            cap: LineCap::Round,
-            join: LineJoin::Round,
-            width: 10.,
-            miter_limit: 2.,
-            dash_array: vec![10., 18.],
-            dash_offset: 16.,
-        },
-        &DrawOptions::new(),
-    );
-    dt.get_data_u8().to_vec()
 }

@@ -7,11 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-compositor = { path = "../compositor" }
-wgpu_renderer = { path = "../wgpu_renderer" }
+compositor = { path = "../../compositor" }
+wgpu_renderer = { path = "../../wgpu_renderer" }
+painter = { path = "../../painter" }
 winit = "0.24"
 env_logger = "0.7"
 log = "0.4"
-wgpu = "0.6" # TODO: 제거
 futures = "0.3"
-raqote = "0.8.0" # TODO: 제거
