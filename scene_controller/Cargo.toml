@@ -7,7 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+futures = "0.3"
+winit = "0.24"
+env_logger = "0.7"
+log = "0.4"
+
 layer_model = { path = "../layer_model" }
 layer_animator = { path = "../layer_animator" }
 layer_compositor = { path = "../layer_compositor" }
+layer_renderer = { path = "../layer_renderer" }
 wgpu_renderer = { path = "../wgpu_surface" }

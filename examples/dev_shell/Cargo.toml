@@ -7,10 +7,5 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-layer_compositor = { path = "../../layer_compositor" }
-wgpu_renderer = { path = "../../wgpu_surface" }
-layer_renderer = { path = "../../layer_renderer" }
-winit = "0.24"
-env_logger = "0.7"
-log = "0.4"
-futures = "0.3"
+layer_model = { path = "../../layer_model" }
+scene_controller = { path = "../../scene_controller" }

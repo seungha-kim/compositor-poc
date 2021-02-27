@@ -457,13 +457,8 @@ dependencies = [
 name = "dev_shell"
 version = "0.1.0"
 dependencies = [
- "env_logger",
- "futures",
- "layer_compositor",
- "layer_renderer",
- "log",
- "wgpu_renderer",
- "winit",
+ "layer_model",
+ "scene_controller",
 ]
 
 [[package]]
@@ -538,15 +533,6 @@ name = "euclid"
 version = "0.20.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bb7ef65b3777a325d1eeefefab5b6d4959da54747e33bd6258e789640f307ad"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "euclid"
-version = "0.22.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5337024b8293bdce5265dc9570ef6e608a34bfacbbc87fe1a5dcb5f1dac2f4e2"
 dependencies = [
  "num-traits",
 ]
@@ -1024,6 +1010,7 @@ dependencies = [
 name = "layer_renderer"
 version = "0.1.0"
 dependencies = [
+ "layer_model",
  "raqote",
 ]
 
@@ -1080,7 +1067,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9962a2ba81382716b87d7d358493cb71844c1f9165ddad763cd9f4d3f5474df2"
 dependencies = [
  "arrayvec",
- "euclid 0.20.14",
+ "euclid",
  "num-traits",
 ]
 
@@ -1432,7 +1419,7 @@ dependencies = [
 name = "primitives"
 version = "0.1.0"
 dependencies = [
- "euclid 0.22.1",
+ "euclid",
 ]
 
 [[package]]
@@ -1598,7 +1585,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "501c19caa439857ed7bea975fa4c3c10ee9a24e33c2640030c3ac14b58f39f77"
 dependencies = [
- "euclid 0.20.14",
+ "euclid",
  "font-kit",
  "lyon_geom",
  "pathfinder_geometry",
@@ -1704,10 +1691,15 @@ dependencies = [
 name = "scene_controller"
 version = "0.1.0"
 dependencies = [
+ "env_logger",
+ "futures",
  "layer_animator",
  "layer_compositor",
  "layer_model",
+ "layer_renderer",
+ "log",
  "wgpu_renderer",
+ "winit",
 ]
 
 [[package]]
