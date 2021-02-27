@@ -1,11 +1,10 @@
 [package]
-name = "compositor"
+name = "layer_renderer"
 version = "0.1.0"
-authors = ["seungha"]
+authors = ["seungha.me@gmail.com <Seungha Kim>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 raqote = "0.8.0"
-logic = { path = "../logic" }

@@ -1,5 +1,5 @@
 [package]
-name = "scheduler"
+name = "layer_model"
 version = "0.1.0"
 authors = ["seungha.me@gmail.com <Seungha Kim>"]
 edition = "2018"
@@ -7,7 +7,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-logic = { path = "../logic" }
-animator = { path = "../animator" }
-compositor = { path = "../compositor" }
-wgpu_renderer = { path = "../wgpu_renderer" }
+primitives = { path = "../primitives" }

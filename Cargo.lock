@@ -35,10 +35,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "animator"
-version = "0.1.0"
-
-[[package]]
 name = "anyhow"
 version = "1.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -265,14 +261,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "compositor"
-version = "0.1.0"
-dependencies = [
- "logic",
- "raqote",
-]
-
-[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -469,11 +457,11 @@ dependencies = [
 name = "dev_shell"
 version = "0.1.0"
 dependencies = [
- "compositor",
  "env_logger",
  "futures",
+ "layer_compositor",
+ "layer_renderer",
  "log",
- "painter",
  "wgpu_renderer",
  "winit",
 ]
@@ -1014,6 +1002,32 @@ name = "key_move"
 version = "0.1.0"
 
 [[package]]
+name = "layer_animator"
+version = "0.1.0"
+
+[[package]]
+name = "layer_compositor"
+version = "0.1.0"
+dependencies = [
+ "layer_model",
+ "raqote",
+]
+
+[[package]]
+name = "layer_model"
+version = "0.1.0"
+dependencies = [
+ "primitives",
+]
+
+[[package]]
+name = "layer_renderer"
+version = "0.1.0"
+dependencies = [
+ "raqote",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1057,13 +1071,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fabed175da42fed1fa0746b0ea71f412aa9d35e76e95e59b192c64b9dc2bf8b"
 dependencies = [
  "cfg-if 0.1.10",
-]
-
-[[package]]
-name = "logic"
-version = "0.1.0"
-dependencies = [
- "primitives",
 ]
 
 [[package]]
@@ -1319,13 +1326,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f923fb806c46266c02ab4a5b239735c144bdeda724a50ed058e5226f594cde3"
 dependencies = [
  "ttf-parser",
-]
-
-[[package]]
-name = "painter"
-version = "0.1.0"
-dependencies = [
- "raqote",
 ]
 
 [[package]]
@@ -1701,12 +1701,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "scheduler"
+name = "scene_controller"
 version = "0.1.0"
 dependencies = [
- "animator",
- "compositor",
- "logic",
+ "layer_animator",
+ "layer_compositor",
+ "layer_model",
  "wgpu_renderer",
 ]
 

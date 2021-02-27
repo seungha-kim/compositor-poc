@@ -1,0 +1,13 @@
+[package]
+name = "scene_controller"
+version = "0.1.0"
+authors = ["seungha.me@gmail.com <Seungha Kim>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+layer_model = { path = "../layer_model" }
+layer_animator = { path = "../layer_animator" }
+layer_compositor = { path = "../layer_compositor" }
+wgpu_renderer = { path = "../wgpu_surface" }

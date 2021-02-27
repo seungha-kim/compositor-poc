@@ -1,4 +1,4 @@
-use logic::*;
+use layer_model::*;
 
 pub trait Drawable {
     fn content_rect(&self) -> Rect;
@@ -11,7 +11,7 @@ pub trait Drawable {
 
 impl Drawable for Layer {
     fn content_rect(&self) -> Rect {
-        use logic::Layer as t;
+        use layer_model::Layer as t;
 
         match self {
             t::Container(ref data) => data.content_rect,
@@ -24,7 +24,7 @@ impl Drawable for Layer {
     }
 
     fn opacity(&self) -> f32 {
-        use logic::Layer as t;
+        use layer_model::Layer as t;
 
         match self {
             t::Container(ref data) => data.opacity,

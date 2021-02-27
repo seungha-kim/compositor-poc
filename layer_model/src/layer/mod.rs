@@ -2,7 +2,7 @@ pub use container::*;
 pub use layer_types::*;
 
 pub mod common;
-mod container;
-mod layer_types;
-mod rect;
+pub mod container;
+pub mod layer_types;
+pub mod rect;
 mod traits;

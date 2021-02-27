@@ -1,13 +1,13 @@
 [workspace]
 
 members = [
-    "logic",
-    "animator",
-    "compositor",
-    "wgpu_renderer",
-    "scheduler",
     "primitives",
-    "painter",
-    "applications/dev_shell",
-    "applications/key_move",
+    "layer_model",
+    "layer_animator",
+    "layer_renderer",
+    "layer_compositor",
+    "wgpu_surface",
+    "scene_controller",
+    "examples/dev_shell",
+    "examples/key_move",
 ]

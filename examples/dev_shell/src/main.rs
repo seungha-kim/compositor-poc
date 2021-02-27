@@ -23,10 +23,12 @@ fn main() {
     let mut quad_renderer = block_on(QuadRenderer::new(&window));
     let mut quad_handles = Vec::new();
     for i in 0..3 {
+        // 여기서 quad 를 직접 생성하는 것이 아니라,
+        // layer -> renderer -> layer_compositor -> quad 로 거쳐와야 함
         let quad_handle =
             quad_renderer.new_quad((i as f32) * 30.0, (i as f32) * 30.0, 100.0, 100.0);
         quad_handles.push(quad_handle);
-        let image = painter::default_image();
+        let image = layer_renderer::default_image();
         quad_renderer.update_texture(quad_handle, image.as_slice());
     }
 

@@ -1,5 +1,5 @@
 use crate::composite::*;
-use logic::*;
+use layer_model::*;
 pub use raqote::*;
 use std::convert::TryInto;
 

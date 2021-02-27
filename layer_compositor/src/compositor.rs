@@ -1,7 +1,7 @@
 use super::composite::*;
 use super::compositing_reason::*;
 use crate::rasterizer::rasterize_container_layer;
-use logic::*;
+use layer_model::*;
 
 struct Compositor {
     size: Size,

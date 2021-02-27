@@ -1,4 +1,4 @@
-use logic::*;
+use layer_model::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum CompositingReason {

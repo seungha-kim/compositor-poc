@@ -1,5 +1,5 @@
 use crate::compositing_reason::*;
-use logic::*;
+use layer_model::*;
 use raqote as r;
 use std::collections::HashMap;
 
