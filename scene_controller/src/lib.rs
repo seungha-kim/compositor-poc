@@ -34,12 +34,18 @@ pub fn main() {
         let quad_handle =
             quad_renderer.new_quad((i as f32) * 30.0, (i as f32) * 30.0, 100.0, 100.0);
         quad_handles.push(quad_handle);
-        let image = layer_renderer::default_image(Rect::new(
-            Point::new(0.0, 0.0),
-            // TODO: 400 에서 줄이면 에러:
-            // copy would end up overruning the bounds of one of the buffers or textures
-            layer_model::Size::new(400.0, 400.0),
-        ));
+        let sample_layer = SampleLayerProps {
+            content_rect: Rect::new(
+                Point::new(0.0, 0.0),
+                // TODO: 400 에서 줄이면 에러:
+                // copy would end up overruning the bounds of one of the buffers or textures
+                layer_model::Size::new(400.0, 400.0),
+            ),
+            opacity: 1.0,
+            border: None,
+            fill: None,
+        };
+        let image = layer_renderer::paint_sample_layer(&sample_layer);
         quad_renderer.update_texture(quad_handle, image.as_slice());
     }
 

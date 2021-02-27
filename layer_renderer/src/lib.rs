@@ -4,7 +4,7 @@ pub fn paint_sample_layer(l: &SampleLayerProps) -> Vec<u8> {
     default_image(l.content_rect())
 }
 
-pub fn default_image(rect: Rect) -> Vec<u8> {
+fn default_image(rect: Rect) -> Vec<u8> {
     let mut dt = raqote::DrawTarget::new(rect.size.width as i32, rect.size.height as i32);
     // let mut dt = raqote::DrawTarget::new(400, 400);
     let mut pb = raqote::PathBuilder::new();

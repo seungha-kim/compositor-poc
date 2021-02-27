@@ -2,10 +2,10 @@ use super::traits::*;
 use crate::layer::common::*;
 
 pub struct SampleLayerProps {
-    content_rect: Rect,
-    border: Option<Border>,
-    fill: Option<Fill>,
-    opacity: f32,
+    pub content_rect: Rect,
+    pub border: Option<Border>,
+    pub fill: Option<Fill>,
+    pub opacity: f32,
 }
 
 impl DimensionLayer for SampleLayerProps {
