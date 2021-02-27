@@ -37,5 +37,5 @@ impl TransparentLayer for SampleLayerProps {
     }
 }
 
-pub struct SampleLayerCreationCommand(Rect);
+pub struct SampleLayerCreationCommand(pub Rect);
 pub enum SampleLayerUpdateCommand {}
