@@ -179,16 +179,16 @@ impl SceneLogic for SampleLogic {
 }
 
 pub fn main() {
+    // TODO: 윈도우 사이즈는 u32가 되어야 함
     let initial_width = 400.;
     let initial_height = 400.;
-    // TODO: 400 에서 줄이면 에러:
-    // copy would end up overruning the bounds of one of the buffers or textures
     let event_loop = EventLoop::new();
     env_logger::init();
 
     let mut logic = SampleLogic { layers: None };
 
-    let mut scene_controller = SceneController::new(&event_loop, 400.0, 400.0, logic);
+    let mut scene_controller =
+        SceneController::new(&event_loop, initial_width, initial_height, logic);
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {

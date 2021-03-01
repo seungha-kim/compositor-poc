@@ -103,7 +103,7 @@ impl Quad {
         uniform_bind_group_layout: &wgpu::BindGroupLayout,
         rect: Rect,
     ) -> Self {
-        let diffuse_texture = Texture::new(&device, &queue, Some("test texture")).unwrap();
+        let diffuse_texture = Texture::new(&device, &queue, Some("test texture"), &rect).unwrap();
         let mut uniforms = Uniforms::new();
         uniforms.update_view_proj(&camera);
 

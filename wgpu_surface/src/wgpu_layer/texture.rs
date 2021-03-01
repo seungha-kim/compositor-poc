@@ -1,17 +1,24 @@
 use anyhow::*;
+use primitives::Rect;
 
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
     pub size: wgpu::Extent3d,
+    rect: Rect,
 }
 
 impl Texture {
-    pub fn new(device: &wgpu::Device, queue: &wgpu::Queue, label: Option<&str>) -> Result<Self> {
+    pub fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        label: Option<&str>,
+        rect: &Rect,
+    ) -> Result<Self> {
         let size = wgpu::Extent3d {
-            width: 400,
-            height: 400,
+            width: rect.size.width as u32,
+            height: rect.size.height as u32,
             depth: 1,
         };
         let texture = device.create_texture(&wgpu::TextureDescriptor {
@@ -40,6 +47,7 @@ impl Texture {
             view,
             sampler,
             size,
+            rect: rect.clone(),
         })
     }
 
@@ -53,8 +61,8 @@ impl Texture {
             data,
             wgpu::TextureDataLayout {
                 offset: 0,
-                bytes_per_row: 4 * 400,
-                rows_per_image: 400,
+                bytes_per_row: 4 * self.rect.width() as u32, // TODO: dangerous
+                rows_per_image: self.rect.height() as u32,
             },
             self.size,
         );

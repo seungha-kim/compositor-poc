@@ -43,7 +43,7 @@ impl<L: SceneLogic> SceneController<L> {
         let width = window.inner_size().width as f32;
         let height = window.inner_size().height as f32;
         let mut quad_renderer = block_on(QuadRenderer::new(&window));
-        let root_quad_id = quad_renderer.new_quad(-200.0, -200.0, width, height);
+        let root_quad_id = quad_renderer.new_quad(width / -2.0, height / -2.0, width, height);
         let mut layer_repository =
             LayerRepository::new(layer_model::common::Size::new(width, height));
         let root_draw_target = raqote::DrawTarget::new(width as i32, height as i32);
