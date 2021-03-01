@@ -8,6 +8,8 @@ pub enum CompositingReason {
 pub fn get_compositing_reason(layer: &Layer) -> Option<CompositingReason> {
     match layer {
         Layer::Container(ref props) => reason_of_container(props),
+        // TODO: 제대로
+        _ => None,
     }
 }
 

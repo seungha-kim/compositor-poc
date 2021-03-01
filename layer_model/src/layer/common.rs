@@ -1,7 +1,7 @@
 use crate::layer::*;
 pub use primitives::*;
 
-pub type LayerId = String;
+pub type LayerId = usize;
 
 #[derive(Copy, Clone, Debug)]
 pub struct CompositingFlag {

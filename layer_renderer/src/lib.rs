@@ -1,11 +1,75 @@
+use layer_model::rect::RectProps;
 use layer_model::*;
+use raqote::{DrawOptions, DrawTarget, PathBuilder, SolidSource, Source, StrokeStyle, Transform};
 
-pub fn paint_sample_layer(l: &SampleLayerProps) -> Vec<u8> {
-    default_image(l.content_rect())
+pub fn render_scene(layer_repo: &LayerRepository, draw_target: &mut DrawTarget) {
+    render_container(layer_repo.root_container_layer(), layer_repo, draw_target);
 }
 
-fn default_image(rect: Rect) -> Vec<u8> {
-    let mut dt = raqote::DrawTarget::new(rect.size.width as i32, rect.size.height as i32);
+pub fn render_layer(layer: &Layer, layer_repo: &LayerRepository, draw_target: &mut DrawTarget) {
+    use Layer::*;
+    match layer {
+        Container(ref props) => render_container(props, layer_repo, draw_target),
+        Rect(ref props) => render_rect(props, draw_target),
+        Sample(ref props) => paint_sample_layer(draw_target, props),
+    }
+}
+
+pub fn render_container(
+    props: &ContainerProps,
+    layer_repo: &LayerRepository,
+    draw_target: &mut DrawTarget,
+) {
+    if props.fill.is_some() || props.border.is_some() {
+        paint_container(draw_target, props);
+    }
+    if !props.is_opaque() {
+        draw_target.push_layer(props.opacity);
+    }
+    {
+        let prev_transform = *draw_target.get_transform();
+        let translation =
+            Transform::create_translation(props.content_rect.origin.x, props.content_rect.origin.y);
+        let next_transform = prev_transform.post_transform(&translation);
+        draw_target.set_transform(&next_transform);
+        for child_id in &props.children {
+            let child_layer = layer_repo.get_layer_by_id(child_id);
+            render_layer(child_layer, layer_repo, draw_target);
+        }
+        draw_target.set_transform(&prev_transform);
+    }
+    if !props.is_opaque() {
+        draw_target.pop_layer();
+    }
+}
+
+pub fn render_rect(props: &RectProps, draw_target: &mut DrawTarget) {}
+
+fn paint_container(draw_target: &mut DrawTarget, props: &ContainerProps) {
+    let mut pb = PathBuilder::new();
+    let origin = props.content_rect.origin;
+    let size = props.content_rect.size;
+    pb.rect(origin.x, origin.y, size.width, size.height);
+    let path = pb.finish();
+    // TODO: fill, stroke 제대로
+    let source = Source::Solid(SolidSource {
+        r: 100,
+        g: 0,
+        b: 0,
+        a: 255,
+    });
+    let stroke_style = StrokeStyle::default();
+    let draw_option = DrawOptions::new();
+    // draw_target.fill(&path, &source, &draw_option);
+    draw_target.stroke(&path, &source, &stroke_style, &draw_option);
+}
+
+pub fn paint_sample_layer(dt: &mut DrawTarget, l: &SampleLayerProps) {
+    default_image(dt, l.content_rect())
+}
+
+fn default_image(dt: &mut DrawTarget, rect: Rect) {
+    // let mut dt = raqote::DrawTarget::new(rect.size.width as i32, rect.size.height as i32);
     // let mut dt = raqote::DrawTarget::new(400, 400);
     let mut pb = raqote::PathBuilder::new();
     pb.move_to(100., 10.);
@@ -59,5 +123,4 @@ fn default_image(rect: Rect) -> Vec<u8> {
         },
         &raqote::DrawOptions::new(),
     );
-    dt.get_data_u8().to_vec()
 }

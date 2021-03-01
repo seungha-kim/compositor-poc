@@ -12,7 +12,7 @@ pub struct CompositeRepository {
 }
 
 pub struct Composite {
-    pub source_layer_id: String,
+    pub source_layer_id: LayerId,
     pub compositing_reason: CompositingReason,
     pub children: Vec<CompositeId>,
     pub rect: Rect,
@@ -52,7 +52,7 @@ impl CompositeRepository {
             .is_none();
         if have_no_matching_composite {
             let child_composite_id = self.new_composite(Composite {
-                source_layer_id: source_layer_id.clone(),
+                source_layer_id: *source_layer_id,
                 compositing_reason,
                 children: vec![],
                 rect: Default::default(),

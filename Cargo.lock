@@ -1698,6 +1698,7 @@ dependencies = [
  "layer_model",
  "layer_renderer",
  "log",
+ "raqote",
  "wgpu_renderer",
  "winit",
 ]

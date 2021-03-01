@@ -11,8 +11,10 @@ use winit::{
 };
 
 pub fn main() {
-    let initial_width = 300.;
-    let initial_height = 300.;
+    let initial_width = 400.;
+    let initial_height = 400.;
+    // TODO: 400 에서 줄이면 에러:
+    // copy would end up overruning the bounds of one of the buffers or textures
 
     env_logger::init();
     let event_loop = EventLoop::new();
@@ -26,16 +28,11 @@ pub fn main() {
             .build(&event_loop)
             .unwrap(),
     );
-    scene_controller.create_layer(LayerCreationCommand::Sample(
-        layer_model::sample::SampleLayerCreationCommand(Rect::new(
-            Point::new(0.0, 0.0),
-            // TODO: 400 에서 줄이면 에러:
-            // copy would end up overruning the bounds of one of the buffers or textures
-            layer_model::Size::new(400.0, 400.0),
-        )),
-    ));
-    scene_controller.update();
-    scene_controller.render();
+    let root_layer_id = *scene_controller.layer_repository.root_layer_id();
+    scene_controller.layer_repository.create_sample_layer(
+        &root_layer_id,
+        &Rect::new(Point::new(0.0, 0.0), layer_model::Size::new(100.0, 100.0)),
+    );
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
@@ -82,38 +79,27 @@ pub fn main() {
 pub struct SceneController {
     pub window: Window,
     quad_renderer: QuadRenderer,
+    layer_repository: LayerRepository,
+    // TODO: 지금은 텍스처 하나에 전부 다 그리지만, 개선되어야 함
+    root_quad_id: QuadId,
+    root_draw_target: raqote::DrawTarget,
 }
 
 impl SceneController {
     fn new(window: Window) -> Self {
-        let quad_renderer = block_on(QuadRenderer::new(&window));
+        let width = window.inner_size().width as f32;
+        let height = window.inner_size().height as f32;
+        let mut quad_renderer = block_on(QuadRenderer::new(&window));
+        let root_quad_id = quad_renderer.new_quad(0.0, 0.0, width, height);
+        let layer_repository = LayerRepository::new(layer_model::common::Size::new(width, height));
+        let root_draw_target = raqote::DrawTarget::new(width as i32, height as i32);
         SceneController {
             window,
             quad_renderer,
+            root_quad_id,
+            root_draw_target,
+            layer_repository,
         }
-    }
-
-    fn create_layer(&mut self, command: LayerCreationCommand) -> LayerId {
-        let i = 1;
-        let quad_handle =
-            self.quad_renderer
-                .new_quad((i as f32) * 30.0, (i as f32) * 30.0, 100.0, 100.0);
-        let sample_layer = SampleLayerProps {
-            content_rect: Rect::new(
-                Point::new(0.0, 0.0),
-                // TODO: 400 에서 줄이면 에러:
-                // copy would end up overruning the bounds of one of the buffers or textures
-                layer_model::Size::new(400.0, 400.0),
-            ),
-            opacity: 1.0,
-            border: None,
-            fill: None,
-        };
-        let image = layer_renderer::paint_sample_layer(&sample_layer);
-        self.quad_renderer
-            .update_texture(quad_handle, image.as_slice());
-        // FIXME: mock layer id
-        "mock_id".into()
     }
 
     fn update(&mut self) {
@@ -121,6 +107,10 @@ impl SceneController {
     }
 
     fn render(&mut self) {
+        layer_renderer::render_scene(&self.layer_repository, &mut self.root_draw_target);
+        let image = self.root_draw_target.get_data_u8().to_vec();
+        self.quad_renderer
+            .update_texture(self.root_quad_id, image.as_slice());
         match self.quad_renderer.render() {
             Ok(_) => {}
             Err(RendererError::SwapChainLost) => self.quad_renderer.resize(self.quad_renderer.size),

@@ -10,6 +10,9 @@ pub trait BorderLayer {
 
 pub trait TransparentLayer {
     fn opacity(&self) -> f32;
+    fn is_opaque(&self) -> bool {
+        self.opacity() >= 1.0
+    }
 }
 
 pub trait DimensionLayer {

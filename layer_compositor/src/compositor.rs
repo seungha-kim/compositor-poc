@@ -47,6 +47,8 @@ impl Compositor {
             Layer::Container(ref props) => {
                 self.visit_container_layer(layer_repo, composite_repo, props, composite_id)
             }
+            // TODO: 제대로
+            _ => {}
         }
     }
 

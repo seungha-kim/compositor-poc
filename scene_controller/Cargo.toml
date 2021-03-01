@@ -11,6 +11,7 @@ futures = "0.3"
 winit = "0.24"
 env_logger = "0.7"
 log = "0.4"
+raqote = "0.8.0" # TODO: compositor surface로 대체되어야 함.
 
 layer_model = { path = "../layer_model" }
 layer_animator = { path = "../layer_animator" }

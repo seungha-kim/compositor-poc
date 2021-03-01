@@ -15,6 +15,7 @@ impl Drawable for Layer {
 
         match self {
             t::Container(ref data) => data.content_rect,
+            _ => unimplemented!(),
         }
     }
 
@@ -28,6 +29,7 @@ impl Drawable for Layer {
 
         match self {
             t::Container(ref data) => data.opacity,
+            _ => unimplemented!(),
         }
     }
 }
