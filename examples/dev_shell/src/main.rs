@@ -5,12 +5,18 @@ use winit::event::{ElementState, VirtualKeyCode, WindowEvent};
 use winit::event::{Event, KeyboardInput};
 use winit::event_loop::{ControlFlow, EventLoop};
 
-struct SampleLogic {}
+struct Layers {
+    rect_layer_id: LayerId,
+}
+
+struct SampleLogic {
+    layers: Option<Layers>,
+}
 
 impl SceneLogic for SampleLogic {
     fn initialize_scene(&mut self, layer_repo: &mut LayerRepository) {
         let root_layer_id = *layer_repo.root_layer_id();
-        layer_repo.create_sample_layer(
+        let rect_layer_id = layer_repo.create_sample_layer(
             &root_layer_id,
             &Rect::new(Point::new(0.0, 0.0), layer_model::Size::new(100.0, 100.0)),
         );
@@ -106,6 +112,8 @@ impl SceneLogic for SampleLogic {
                 }),
             },
         );
+
+        self.layers = Some(Layers { rect_layer_id });
     }
 
     fn handle_window_event(
@@ -121,6 +129,32 @@ impl SceneLogic for SampleLogic {
                     virtual_keycode: Some(VirtualKeyCode::Escape),
                     ..
                 } => ControlFlow::Exit,
+                KeyboardInput {
+                    state: ElementState::Pressed,
+                    virtual_keycode: Some(keycode),
+                    ..
+                } => {
+                    let rect_layer_id = self.layers.as_ref().unwrap().rect_layer_id;
+                    let layer = layer_repo.get_layer_by_id_mut(&rect_layer_id);
+                    if let Layer::Sample(props) = layer {
+                        match keycode {
+                            VirtualKeyCode::Right => {
+                                props.content_rect.origin.x += 1.0;
+                            }
+                            VirtualKeyCode::Left => {
+                                props.content_rect.origin.x -= 1.0;
+                            }
+                            VirtualKeyCode::Up => {
+                                props.content_rect.origin.y -= 1.0;
+                            }
+                            VirtualKeyCode::Down => {
+                                props.content_rect.origin.y += 1.0;
+                            }
+                            _ => {}
+                        }
+                    }
+                    ControlFlow::Poll
+                }
                 _ => ControlFlow::Poll,
             },
             WindowEvent::CursorMoved { position, .. } => {
@@ -152,7 +186,7 @@ pub fn main() {
     let event_loop = EventLoop::new();
     env_logger::init();
 
-    let mut logic = SampleLogic {};
+    let mut logic = SampleLogic { layers: None };
 
     let mut scene_controller = SceneController::new(&event_loop, 400.0, 400.0, logic);
 
