@@ -1,6 +1,7 @@
 use crate::layer::common::*;
 use crate::layer::*;
 
+use crate::layer::rect::RectProps;
 use crate::Layer::Container;
 use crate::SampleLayerProps;
 use std::collections::HashMap;
@@ -37,8 +38,7 @@ impl LayerRepository {
     }
 
     pub fn create_sample_layer(&mut self, parent_id: &LayerId, content_rect: &Rect) -> LayerId {
-        self.layer_id_count += 1;
-        let layer_id = self.layer_id_count;
+        let layer_id = self.new_layer_id();
         self.layer_map.insert(
             layer_id,
             Layer::Sample(SampleLayerProps {
@@ -48,11 +48,32 @@ impl LayerRepository {
                 border: None,
             }),
         );
-        if let Some(Layer::Container(props)) = self.layer_map.get_mut(&parent_id) {
-            props.children.push(layer_id);
-        } else {
-            panic!("parent is not a container");
-        }
+        self.push_child_to_container(parent_id, &layer_id);
+        layer_id
+    }
+
+    pub fn create_rect_layer(&mut self, parent_id: &LayerId, props: RectProps) -> LayerId {
+        let layer_id = self.new_layer_id();
+        self.layer_map.insert(layer_id, Layer::Rect(props));
+        self.push_child_to_container(parent_id, &layer_id);
+        layer_id
+    }
+
+    pub fn create_container_layer(
+        &mut self,
+        parent_id: &LayerId,
+        props: ContainerProps,
+    ) -> LayerId {
+        let layer_id = self.new_layer_id();
+        self.layer_map.insert(layer_id, Layer::Container(props));
+        self.push_child_to_container(parent_id, &layer_id);
+        layer_id
+    }
+
+    pub fn create_layer(&mut self, parent_id: &LayerId, layer: Layer) -> LayerId {
+        let layer_id = self.new_layer_id();
+        self.layer_map.insert(layer_id, layer);
+        self.push_child_to_container(parent_id, &layer_id);
         layer_id
     }
 
@@ -86,6 +107,19 @@ impl LayerRepository {
     pub fn clear_all_flags(&mut self) {
         for v in self.flags.values_mut() {
             v.clear();
+        }
+    }
+
+    fn new_layer_id(&mut self) -> LayerId {
+        self.layer_id_count += 1;
+        self.layer_id_count
+    }
+
+    fn push_child_to_container(&mut self, parent_id: &LayerId, child_id: &LayerId) {
+        if let Some(Layer::Container(props)) = self.layer_map.get_mut(&parent_id) {
+            props.children.push(*child_id);
+        } else {
+            panic!("parent is not a container");
         }
     }
 }

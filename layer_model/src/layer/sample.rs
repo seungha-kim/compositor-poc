@@ -20,14 +20,14 @@ impl DimensionLayer for SampleLayerProps {
 }
 
 impl FillableLayer for SampleLayerProps {
-    fn fill(&self) -> Option<Fill> {
-        self.fill
+    fn fill(&self) -> Option<&Fill> {
+        self.fill.as_ref()
     }
 }
 
 impl BorderLayer for SampleLayerProps {
-    fn border(&self) -> Option<Border> {
-        self.border
+    fn border(&self) -> Option<&Border> {
+        self.border.as_ref()
     }
 }
 

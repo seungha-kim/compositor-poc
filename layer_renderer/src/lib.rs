@@ -1,31 +1,34 @@
 use layer_model::rect::RectProps;
 use layer_model::*;
-use raqote::{DrawOptions, DrawTarget, PathBuilder, SolidSource, Source, StrokeStyle, Transform};
+use raqote::{
+    DrawOptions, DrawTarget, Path, PathBuilder, SolidSource, Source, StrokeStyle, Transform,
+};
 
 pub fn render_scene(layer_repo: &LayerRepository, draw_target: &mut DrawTarget) {
-    render_container(layer_repo.root_container_layer(), layer_repo, draw_target);
+    render_container(draw_target, layer_repo.root_container_layer(), layer_repo);
 }
 
 pub fn render_layer(layer: &Layer, layer_repo: &LayerRepository, draw_target: &mut DrawTarget) {
     use Layer::*;
     match layer {
-        Container(ref props) => render_container(props, layer_repo, draw_target),
-        Rect(ref props) => render_rect(props, draw_target),
+        Container(ref props) => render_container(draw_target, props, layer_repo),
+        Rect(ref props) => render_rect(draw_target, props),
         Sample(ref props) => paint_sample_layer(draw_target, props),
     }
 }
 
 pub fn render_container(
+    draw_target: &mut DrawTarget,
     props: &ContainerProps,
     layer_repo: &LayerRepository,
-    draw_target: &mut DrawTarget,
 ) {
-    if props.fill.is_some() || props.border.is_some() {
-        paint_container(draw_target, props);
-    }
     if !props.is_opaque() {
         draw_target.push_layer(props.opacity);
     }
+    if props.fill.is_some() || props.border.is_some() {
+        paint_container(draw_target, props);
+    }
+
     {
         let prev_transform = *draw_target.get_transform();
         let translation =
@@ -43,7 +46,63 @@ pub fn render_container(
     }
 }
 
-pub fn render_rect(props: &RectProps, draw_target: &mut DrawTarget) {}
+pub fn render_rect(draw_target: &mut DrawTarget, props: &RectProps) {
+    // TODO: cache invalidation logic
+    paint_rect(draw_target, props);
+}
+
+fn paint_fill(draw_target: &mut DrawTarget, fill: &Fill, path: &Path) {
+    let draw_option = DrawOptions::new();
+    let source = match fill {
+        Fill::Color { r, g, b, a } => Source::Solid(SolidSource {
+            r: *r,
+            g: *g,
+            b: *b,
+            a: *a,
+        }),
+    };
+    draw_target.fill(path, &source, &draw_option);
+}
+
+fn paint_border(draw_target: &mut DrawTarget, border: &Border, path: &Path) {
+    let draw_option = DrawOptions::new();
+    let source = match &border.fill {
+        Fill::Color { r, g, b, a } => Source::Solid(SolidSource {
+            r: *r,
+            g: *g,
+            b: *b,
+            a: *a,
+        }),
+    };
+    // TODO: border position
+    let stroke_style = StrokeStyle {
+        width: border.width,
+        ..Default::default()
+    };
+    draw_target.stroke(&path, &source, &stroke_style, &draw_option);
+}
+
+fn paint_rect(draw_target: &mut DrawTarget, props: &RectProps) {
+    if !props.is_opaque() {
+        draw_target.push_layer(props.opacity);
+    }
+    let mut pb = PathBuilder::new();
+    // TODO: Trait-bounded generic paint function to share
+    let origin = props.content_rect.origin;
+    let size = props.content_rect.size;
+    pb.rect(origin.x, origin.y, size.width, size.height);
+    let path = pb.finish();
+
+    if let Some(ref fill) = props.fill {
+        paint_fill(draw_target, fill, &path);
+    }
+    if let Some(ref border) = props.border {
+        paint_border(draw_target, border, &path);
+    }
+    if !props.is_opaque() {
+        draw_target.pop_layer();
+    }
+}
 
 fn paint_container(draw_target: &mut DrawTarget, props: &ContainerProps) {
     let mut pb = PathBuilder::new();
@@ -51,17 +110,12 @@ fn paint_container(draw_target: &mut DrawTarget, props: &ContainerProps) {
     let size = props.content_rect.size;
     pb.rect(origin.x, origin.y, size.width, size.height);
     let path = pb.finish();
-    // TODO: fill, stroke 제대로
-    let source = Source::Solid(SolidSource {
-        r: 100,
-        g: 0,
-        b: 0,
-        a: 255,
-    });
-    let stroke_style = StrokeStyle::default();
-    let draw_option = DrawOptions::new();
-    // draw_target.fill(&path, &source, &draw_option);
-    draw_target.stroke(&path, &source, &stroke_style, &draw_option);
+    if let Some(ref fill) = props.fill {
+        paint_fill(draw_target, fill, &path);
+    }
+    if let Some(ref border) = props.border {
+        paint_border(draw_target, border, &path);
+    }
 }
 
 pub fn paint_sample_layer(dt: &mut DrawTarget, l: &SampleLayerProps) {
@@ -69,8 +123,15 @@ pub fn paint_sample_layer(dt: &mut DrawTarget, l: &SampleLayerProps) {
 }
 
 fn default_image(dt: &mut DrawTarget, rect: Rect) {
-    // let mut dt = raqote::DrawTarget::new(rect.size.width as i32, rect.size.height as i32);
-    // let mut dt = raqote::DrawTarget::new(400, 400);
+    let horizontal_ratio = rect.size.width / 400.0;
+    let vertical_ratio = rect.size.height / 400.0;
+    let prev_transform = *dt.get_transform();
+    let translation = Transform::create_translation(rect.origin.x, rect.origin.y);
+    dt.set_transform(
+        &prev_transform
+            .post_scale(horizontal_ratio, vertical_ratio)
+            .post_transform(&translation),
+    );
     let mut pb = raqote::PathBuilder::new();
     pb.move_to(100., 10.);
     pb.cubic_to(150., 40., 175., 0., 200., 10.);
@@ -123,4 +184,5 @@ fn default_image(dt: &mut DrawTarget, rect: Rect) {
         },
         &raqote::DrawOptions::new(),
     );
+    dt.set_transform(&prev_transform);
 }

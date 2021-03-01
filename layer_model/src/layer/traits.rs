@@ -1,11 +1,11 @@
 use super::common::*;
 
 pub trait FillableLayer {
-    fn fill(&self) -> Option<Fill>;
+    fn fill(&self) -> Option<&Fill>;
 }
 
 pub trait BorderLayer {
-    fn border(&self) -> Option<Border>;
+    fn border(&self) -> Option<&Border>;
 }
 
 pub trait TransparentLayer {

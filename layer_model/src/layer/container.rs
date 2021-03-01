@@ -21,8 +21,8 @@ impl DimensionLayer for ContainerProps {
 }
 
 impl BorderLayer for ContainerProps {
-    fn border(&self) -> Option<Border> {
-        self.border
+    fn border(&self) -> Option<&Border> {
+        self.border.as_ref()
     }
 }
 
@@ -33,8 +33,8 @@ impl TransparentLayer for ContainerProps {
 }
 
 impl FillableLayer for ContainerProps {
-    fn fill(&self) -> Option<Fill> {
-        self.fill
+    fn fill(&self) -> Option<&Fill> {
+        self.fill.as_ref()
     }
 }
 

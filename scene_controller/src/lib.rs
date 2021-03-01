@@ -1,6 +1,8 @@
 use futures::executor::block_on;
 use layer_model::commands::LayerCreationCommand;
+use layer_model::rect::RectProps;
 use layer_model::*;
+use raqote::SolidSource;
 use wgpu_renderer::wgpu_layer::*;
 use winit::window::Window;
 use winit::{
@@ -32,6 +34,95 @@ pub fn main() {
     scene_controller.layer_repository.create_sample_layer(
         &root_layer_id,
         &Rect::new(Point::new(0.0, 0.0), layer_model::Size::new(100.0, 100.0)),
+    );
+    scene_controller.layer_repository.create_sample_layer(
+        &root_layer_id,
+        &Rect::new(Point::new(50.0, 50.0), layer_model::Size::new(200.0, 200.0)),
+    );
+    scene_controller.layer_repository.create_sample_layer(
+        &root_layer_id,
+        &Rect::new(
+            Point::new(100.0, 100.0),
+            layer_model::Size::new(300.0, 300.0),
+        ),
+    );
+    scene_controller.layer_repository.create_rect_layer(
+        &root_layer_id,
+        RectProps {
+            content_rect: Rect::new(Point::new(0.0, 200.0), layer_model::Size::new(100.0, 100.0)),
+            opacity: 1.0,
+            fill: Some(Fill::Color {
+                r: 0,
+                g: 255,
+                b: 0,
+                a: 255,
+            }),
+            border: Some(Border {
+                fill: Fill::Color {
+                    r: 0,
+                    g: 0,
+                    b: 255,
+                    a: 255,
+                },
+                width: 10.0,
+                position: BorderPosition::Inner,
+            }),
+        },
+    );
+
+    let container_id = scene_controller.layer_repository.create_layer(
+        &root_layer_id,
+        Layer::Container(ContainerProps {
+            content_rect: Rect::new(
+                Point::new(200.0, 200.0),
+                layer_model::Size::new(100.0, 100.0),
+            ),
+            opacity: 0.5,
+            fill: Some(Fill::Color {
+                r: 0,
+                g: 255,
+                b: 0,
+                a: 255,
+            }),
+            border: Some(Border {
+                fill: Fill::Color {
+                    r: 0,
+                    g: 0,
+                    b: 255,
+                    a: 255,
+                },
+                width: 10.0,
+                position: BorderPosition::Inner,
+            }),
+            children: vec![],
+        }),
+    );
+
+    scene_controller.layer_repository.create_rect_layer(
+        &container_id,
+        RectProps {
+            content_rect: Rect::new(
+                Point::new(100.0, 100.0),
+                layer_model::Size::new(100.0, 100.0),
+            ),
+            opacity: 1.0,
+            fill: Some(Fill::Color {
+                r: 0,
+                g: 255,
+                b: 0,
+                a: 255,
+            }),
+            border: Some(Border {
+                fill: Fill::Color {
+                    r: 0,
+                    g: 0,
+                    b: 255,
+                    a: 255,
+                },
+                width: 10.0,
+                position: BorderPosition::Inner,
+            }),
+        },
     );
 
     event_loop.run(move |event, _, control_flow| match event {
@@ -90,7 +181,7 @@ impl SceneController {
         let width = window.inner_size().width as f32;
         let height = window.inner_size().height as f32;
         let mut quad_renderer = block_on(QuadRenderer::new(&window));
-        let root_quad_id = quad_renderer.new_quad(0.0, 0.0, width, height);
+        let root_quad_id = quad_renderer.new_quad(-200.0, -200.0, width, height);
         let layer_repository = LayerRepository::new(layer_model::common::Size::new(width, height));
         let root_draw_target = raqote::DrawTarget::new(width as i32, height as i32);
         SceneController {
@@ -107,6 +198,13 @@ impl SceneController {
     }
 
     fn render(&mut self) {
+        // TODO: 매번 clear 하지 말아야 함
+        self.root_draw_target.clear(SolidSource {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 0,
+        });
         layer_renderer::render_scene(&self.layer_repository, &mut self.root_draw_target);
         let image = self.root_draw_target.get_data_u8().to_vec();
         self.quad_renderer
