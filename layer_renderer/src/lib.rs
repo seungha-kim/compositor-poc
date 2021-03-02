@@ -1,3 +1,6 @@
+use font_kit::family_name::FamilyName;
+use font_kit::properties::Properties;
+use font_kit::source::SystemSource;
 use layer_model::rect::RectProps;
 use layer_model::*;
 use raqote::{
@@ -39,11 +42,47 @@ pub fn render_container(
             let child_layer = layer_repo.get_layer_by_id(child_id);
             render_layer(child_layer, layer_repo, draw_target);
         }
+        test_text(draw_target);
         draw_target.set_transform(&prev_transform);
     }
     if !props.is_opaque() {
         draw_target.pop_layer();
     }
+}
+
+fn test_text(draw_target: &mut DrawTarget) {
+    let font = SystemSource::new()
+        .select_best_match(&[FamilyName::SansSerif], &Properties::new())
+        .unwrap()
+        .load()
+        .unwrap();
+    draw_target.fill_rect(
+        0.0,
+        0.0,
+        10.0,
+        10.0,
+        &Source::Solid(SolidSource {
+            r: 0xff,
+            g: 0xff,
+            b: 0,
+            a: 0,
+        }),
+        &DrawOptions::new(),
+    );
+
+    draw_target.draw_text(
+        &font,
+        24.,
+        "Hello",
+        Point::new(0., 100.),
+        &Source::Solid(SolidSource {
+            r: 0xff,
+            g: 0,
+            b: 0xff,
+            a: 0xff,
+        }),
+        &DrawOptions::new(),
+    );
 }
 
 pub fn render_rect(draw_target: &mut DrawTarget, props: &RectProps) {

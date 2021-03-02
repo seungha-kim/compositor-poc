@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 layer_model = { path = "../layer_model" }
 raqote = "0.8.0"
+font-kit = "0.7"
+pathfinder_geometry = "0.5"
