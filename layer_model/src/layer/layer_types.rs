@@ -1,12 +1,14 @@
 use super::common::*;
 use super::container::*;
 use crate::layer::rect::RectProps;
+use crate::layer::simple_text::SimpleTextProps;
 use crate::SampleLayerProps;
 
 pub enum Layer {
     Container(ContainerProps),
     Rect(RectProps),
     Sample(SampleLayerProps),
+    SimpleText(SimpleTextProps),
 }
 
 impl Default for Layer {

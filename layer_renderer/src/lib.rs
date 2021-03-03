@@ -2,6 +2,7 @@ use font_kit::family_name::FamilyName;
 use font_kit::properties::Properties;
 use font_kit::source::SystemSource;
 use layer_model::rect::RectProps;
+use layer_model::simple_text::SimpleTextProps;
 use layer_model::*;
 use raqote::{
     DrawOptions, DrawTarget, Path, PathBuilder, SolidSource, Source, StrokeStyle, Transform,
@@ -17,6 +18,31 @@ pub fn render_layer(layer: &Layer, layer_repo: &LayerRepository, draw_target: &m
         Container(ref props) => render_container(draw_target, props, layer_repo),
         Rect(ref props) => render_rect(draw_target, props),
         Sample(ref props) => paint_sample_layer(draw_target, props),
+        SimpleText(ref props) => render_simple_text(draw_target, props),
+    }
+}
+
+fn render_simple_text(draw_target: &mut DrawTarget, props: &SimpleTextProps) {
+    let font = SystemSource::new()
+        .select_best_match(&[FamilyName::SansSerif], &Properties::new())
+        .unwrap()
+        .load()
+        .unwrap();
+
+    match props.fill {
+        Fill::Color { r, g, b, a } => {
+            draw_target.draw_text(
+                &font,
+                24.,
+                &props.text,
+                Point::new(
+                    props.content_rect.origin.x,
+                    props.content_rect.origin.y + props.content_rect.size.height,
+                ),
+                &Source::Solid(SolidSource { r, g, b, a }),
+                &DrawOptions::new(),
+            );
+        }
     }
 }
 
@@ -42,47 +68,11 @@ pub fn render_container(
             let child_layer = layer_repo.get_layer_by_id(child_id);
             render_layer(child_layer, layer_repo, draw_target);
         }
-        test_text(draw_target);
         draw_target.set_transform(&prev_transform);
     }
     if !props.is_opaque() {
         draw_target.pop_layer();
     }
-}
-
-fn test_text(draw_target: &mut DrawTarget) {
-    let font = SystemSource::new()
-        .select_best_match(&[FamilyName::SansSerif], &Properties::new())
-        .unwrap()
-        .load()
-        .unwrap();
-    draw_target.fill_rect(
-        0.0,
-        0.0,
-        10.0,
-        10.0,
-        &Source::Solid(SolidSource {
-            r: 0xff,
-            g: 0xff,
-            b: 0,
-            a: 0,
-        }),
-        &DrawOptions::new(),
-    );
-
-    draw_target.draw_text(
-        &font,
-        24.,
-        "Hello",
-        Point::new(0., 100.),
-        &Source::Solid(SolidSource {
-            r: 0xff,
-            g: 0,
-            b: 0xff,
-            a: 0xff,
-        }),
-        &DrawOptions::new(),
-    );
 }
 
 pub fn render_rect(draw_target: &mut DrawTarget, props: &RectProps) {

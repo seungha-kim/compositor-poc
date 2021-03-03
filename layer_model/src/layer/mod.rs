@@ -7,4 +7,5 @@ pub mod container;
 pub mod layer_types;
 pub mod rect;
 pub mod sample;
+pub mod simple_text;
 pub mod traits;

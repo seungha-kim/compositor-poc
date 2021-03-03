@@ -2,6 +2,7 @@ use crate::layer::common::*;
 use crate::layer::*;
 
 use crate::layer::rect::RectProps;
+use crate::layer::simple_text::SimpleTextProps;
 use crate::Layer::Container;
 use crate::SampleLayerProps;
 use std::collections::HashMap;
@@ -55,6 +56,17 @@ impl LayerRepository {
     pub fn create_rect_layer(&mut self, parent_id: &LayerId, props: RectProps) -> LayerId {
         let layer_id = self.new_layer_id();
         self.layer_map.insert(layer_id, Layer::Rect(props));
+        self.push_child_to_container(parent_id, &layer_id);
+        layer_id
+    }
+
+    pub fn create_simple_text_layer(
+        &mut self,
+        parent_id: &LayerId,
+        props: SimpleTextProps,
+    ) -> LayerId {
+        let layer_id = self.new_layer_id();
+        self.layer_map.insert(layer_id, Layer::SimpleText(props));
         self.push_child_to_container(parent_id, &layer_id);
         layer_id
     }

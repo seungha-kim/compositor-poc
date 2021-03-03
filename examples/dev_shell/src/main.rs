@@ -1,4 +1,5 @@
 use layer_model::rect::RectProps;
+use layer_model::simple_text::SimpleTextProps;
 use layer_model::*;
 use scene_controller::*;
 use winit::event::{ElementState, VirtualKeyCode, WindowEvent};
@@ -19,6 +20,20 @@ impl SceneLogic for SampleLogic {
         let rect_layer_id = layer_repo.create_sample_layer(
             &root_layer_id,
             &Rect::new(Point::new(0.0, 0.0), layer_model::Size::new(100.0, 100.0)),
+        );
+        layer_repo.create_simple_text_layer(
+            &root_layer_id,
+            SimpleTextProps {
+                text: "Hello Text!".into(),
+                content_rect: Rect::new(Point::new(0.0, 0.0), layer_model::Size::new(100.0, 20.0)),
+                opacity: 1.0,
+                fill: Fill::Color {
+                    r: 255,
+                    g: 0,
+                    b: 0,
+                    a: 255,
+                },
+            },
         );
         layer_repo.create_sample_layer(
             &root_layer_id,
